@@ -612,8 +612,6 @@ class GetVideoLink(APIView):
 
 
 from django.http import JsonResponse
-
-
 class GetVideoInfoView(APIView):
     def get(self, request):
         video_id = self.request.query_params.get('video_id')
@@ -622,15 +620,20 @@ class GetVideoInfoView(APIView):
             try:
                 video = Video.objects.get(id=video_id)
                 user_name = video.user_id.name
-                user_profile_photo = video.user_id.profile_photo.url
+                # Handle profile_photo gracefully
+                try:
+                    user_profile_photo = video.user_id.profile_photo.url
+                except ValueError:
+                    user_profile_photo = None
+
                 description = video.description
-                id=video.user_id.id
+                user_id = video.user_id.id
 
                 response_data = {
                     'user_name': user_name,
                     'user_profile_photo': user_profile_photo,
                     'description': description,
-                    'user_id':id
+                    'user_id': user_id
                 }
 
                 return JsonResponse(response_data)
