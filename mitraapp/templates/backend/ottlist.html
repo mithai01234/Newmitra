@@ -27,10 +27,13 @@
 
     <div class="table-responsive">
         <div class="table-wrapper">
+<div class="col-12 ">
+                <a href="{%  url 'add_accounts' %}"><button class="btn btn-success btn-sm"><i class="fa fa-plus"></i> Upload  </button></a>
 
+              </div>
             <div class="table-title">
                 <div class="row">
-                    <div class="col-sm-8"><h2>User<b>Details</b></h2></div>
+                    <div class="col-sm-8"><h2>Ott List<b>Details</b></h2></div>
 
                 </div>
             </div>
@@ -46,7 +49,7 @@
                         <th>Ott</th>
                         <th>Uploaded_date</th>
                         <th>Status</th>
-                        <th>Action</th>
+                           <th>Actions</th>
 
                     </tr>
                 </thead>
@@ -72,22 +75,22 @@
                      <td>{{ i.uploaded_at }}</td>
 
 <td>
-    {% if i.status == 3 %}
-        <a href="{% url 'userlist/deactivate_catagory' i.id %}" id="activeLink" class="btn btn-danger text-white">Block</a>
-    {% elif i.status == 2 %}
-        <a href="{% url 'userlist/activate_catagory' i.id %}" id="activeLink" class="btn btn-success text-white">Activate</a>
-    {% else  %}
-        <a href="{% url 'userlist/suspend_user' i.id %}" id="blockLink" class="btn btn-warning text-white">Suspend</a>
+    {% if i.status  %}
+        <a href="{% url 'addcustomer/deactivate_product' i.id %}" id="activeLink" class="btn btn-danger text-white">Block</a>
+    {% else %}
+        <a href="{% url 'addcustomer/activate_product' i.id %}" id="activeLink" class="btn btn-success text-white">Activate</a>
+
     {% endif %}
 </td>
 
+   <td>
 
 
-                        <td>
-                            <a href="{% url 'userlist/view_item' i.id %}" class="view" title="View" data-toggle="tooltip"><i class="fa fa-eye"></i></a>
-                             <a href="{% url 'userlist/user_profile' i.id %}" class="moneysign" title="Money Sign" data-toggle="tooltip"><i class="fa fa-heart"></i></a>
-                             <a href="{% url 'userlist/share_income' i.id %}" class="moneysign" title="Money Sign" data-toggle="tooltip"><i class="fa fa-location-arrow"></i></a>
+
+                            <a href="{% url 'addroles/delete_item' i.id %}" ><i class="fa fa-trash"></i></a>
                         </td>
+
+
                     </tr>
                 {% endfor %}
 

@@ -70,14 +70,68 @@ class VideoViewSet(viewsets.ModelViewSet):
     queryset = Video.objects.all()
     serializer_class = VideoSerializer
 
+    # def create(self, request, *args, **kwargs):
+    #     serializer = VideoSerializer(data=request.data)
+    #
+    #     if serializer. is_valid():
+    #         video_file = request.data.get('file')
+    #         title = request.data.get('title', '')
+    #
+    #
+    #
+    #         if not video_file:
+    #             return Response({'error': 'No video file provided'}, status=status.HTTP_400_BAD_REQUEST)
+    #
+    #         try:
+    #             # Initialize the S3 client for Vultr Object Storage
+    #             s3 = boto3.client(
+    #                 's3',
+    #                 endpoint_url='https://blr1.vultrobjects.com',  # Vultr Object Storage endpoint
+    #                 aws_access_key_id='T5SG87Y94IKFIZBMNGOE',
+    #                 aws_secret_access_key='2rKkzzIvLYjrS0AVltlhIdmJtJ1sskbVe6ysld38'
+    #             )
+    #
+    #             # Use the original file name as the key for the video file within the 'videos' directory
+    #             video_key = f'videos/{video_file.name}'
+    #
+    #             # Save the video directly to Vultr Object Storage
+    #             video_data = video_file.read()
+    #
+    #             s3.upload_fileobj(io.BytesIO(video_data), 'mitra-bucket', video_key)
+    #
+    #             # Generate a thumbnail from the video and save it
+    #             thumbnail_path = self.generate_and_save_thumbnail(video_data)
+    #
+    #             if thumbnail_path:
+    #                 # Generate a unique key for the thumbnail file within the 'videos' directory
+    #                 thumbnail_key = f'videos/{video_file.name}.thumbnail.jpg'
+    #
+    #                 # Upload the thumbnail image directly to Vultr Object Storage
+    #                 thumbnail_data = open(thumbnail_path, 'rb').read()
+    #
+    #                 s3.upload_fileobj(io.BytesIO(thumbnail_data), 'mitra-bucket', thumbnail_key)
+    #
+    #                 # Save the video data to the database, including the video and thumbnail keys
+    #                 serializer.save(file=video_key, thumbnail=thumbnail_key, status=True)
+    #
+    #                 # Clean up temporary files
+    #                 os.remove(thumbnail_path)
+    #
+    #                 return Response({'message': 'Video uploaded successfully'}, status=status.HTTP_201_CREATED)
+    #             else:
+    #                 return Response({'error': 'Thumbnail generation failed'},
+    #                                 status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    #
+    #         except Exception as e:
+    #             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    #
+    #     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     def create(self, request, *args, **kwargs):
         serializer = VideoSerializer(data=request.data)
 
-        if serializer. is_valid():
+        if serializer.is_valid():
             video_file = request.data.get('file')
             title = request.data.get('title', '')
-
-
 
             if not video_file:
                 return Response({'error': 'No video file provided'}, status=status.HTTP_400_BAD_REQUEST)
@@ -87,8 +141,8 @@ class VideoViewSet(viewsets.ModelViewSet):
                 s3 = boto3.client(
                     's3',
                     endpoint_url='https://blr1.vultrobjects.com',  # Vultr Object Storage endpoint
-                    aws_access_key_id='RPXXFVF2T8NYMS0HU92G',
-                    aws_secret_access_key='nU3jO0rP7pCGKFmab3vUuSDacaaN4jvKlOlFCMHM'
+                    aws_access_key_id='T5SG87Y94IKFIZBMNGOE',
+                    aws_secret_access_key='2rKkzzIvLYjrS0AVltlhIdmJtJ1sskbVe6ysld38'
                 )
 
                 # Use the original file name as the key for the video file within the 'videos' directory
@@ -97,7 +151,12 @@ class VideoViewSet(viewsets.ModelViewSet):
                 # Save the video directly to Vultr Object Storage
                 video_data = video_file.read()
 
-                s3.upload_fileobj(io.BytesIO(video_data), 'mitra-bucket', video_key)
+                # Compress the video before uploading
+                compressed_video_path = self.compress_video(video_data)
+                if not compressed_video_path:
+                    return Response({'error': 'Video compression failed'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+                s3.upload_file(compressed_video_path, 'mitra-bucket', video_key)
 
                 # Generate a thumbnail from the video and save it
                 thumbnail_path = self.generate_and_save_thumbnail(video_data)
@@ -108,7 +167,6 @@ class VideoViewSet(viewsets.ModelViewSet):
 
                     # Upload the thumbnail image directly to Vultr Object Storage
                     thumbnail_data = open(thumbnail_path, 'rb').read()
-
                     s3.upload_fileobj(io.BytesIO(thumbnail_data), 'mitra-bucket', thumbnail_key)
 
                     # Save the video data to the database, including the video and thumbnail keys
@@ -116,6 +174,7 @@ class VideoViewSet(viewsets.ModelViewSet):
 
                     # Clean up temporary files
                     os.remove(thumbnail_path)
+                    os.remove(compressed_video_path)
 
                     return Response({'message': 'Video uploaded successfully'}, status=status.HTTP_201_CREATED)
                 else:
@@ -126,6 +185,62 @@ class VideoViewSet(viewsets.ModelViewSet):
                 return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    # def compress_video(self, video_data):
+    #     try:
+    #         # Create a temporary file to save the compressed video
+    #         with tempfile.NamedTemporaryFile(suffix=".mp4", delete=False) as temp_compressed_video_file:
+    #             # Write the video data to the temporary file
+    #             temp_compressed_video_file.write(video_data)
+    #
+    #             # Load the video using MoviePy
+    #             video = mp.VideoFileClip(temp_compressed_video_file.name)
+    #
+    #             # Define the target resolution and bitrate (adjust as needed)
+    #             target_resolution = (720, 420)
+    #             target_bitrate = "500k"
+    #
+    #             # Resize the video to the target resolution
+    #             resized_video = video.resize(target_resolution)
+    #
+    #             # Write the compressed video to the temporary file with the specified bitrate
+    #             resized_video.write_videofile(temp_compressed_video_file.name, codec="libx264", bitrate=target_bitrate)
+    #
+    #             return temp_compressed_video_file.name
+    #     except Exception as e:
+    #         # Handle any errors that may occur during video compression
+    #         print(f"Video compression error: {str(e)}")
+    #         return None
+    def compress_video(self, video_data, target_width=320, target_height=240, target_fps=10, target_bitrate='300k'):
+        try:
+            # Create a temporary directory to store the compressed video file
+            temp_dir = tempfile.mkdtemp()
+
+            # Write the original video data to a temporary file
+            input_video_path = os.path.join(temp_dir, 'input_video.mp4')
+            with open(input_video_path, 'wb') as temp_video_file:
+                temp_video_file.write(video_data)
+
+            # Compress the video using moviepy
+            compressed_clip = VideoFileClip(input_video_path).resize(width=target_width, height=target_height)
+
+            # Set the desired parameters for compression using ffmpeg_params
+            compressed_video_path = os.path.join(temp_dir, 'compressed_video.mp4')
+            compressed_clip.write_videofile(
+                compressed_video_path,
+                codec="libx264",
+                audio_codec="aac",
+                fps=target_fps,
+                bitrate=target_bitrate,
+                threads=2  # Adjust the number of threads based on your system
+            )
+
+            return compressed_video_path
+
+        except Exception as e:
+            print(f"Video compression failed: {str(e)}")
+            return None
+
 
     def generate_and_save_thumbnail(self, video_data):
         try:
@@ -166,31 +281,31 @@ class VideoViewSet(viewsets.ModelViewSet):
             print(f"Video saving error: {str(e)}")
             return None
 
-    def compress_video(self, video_path):
-        try:
-            # Load the video using MoviePy
-            video = mp.VideoFileClip(video_path)
-
-            # Define the output file path for the compressed video
-            compressed_video_path = "compressed_video.mp4"
-
-            # Define the target resolution and bitrate (adjust as needed)
-            # target_resolution = (640, 360)
-            original_width, original_height = video.size
-
-            target_bitrate = "500k"
-
-            # Resize the video to the target resolution
-            resized_video = video.resize((original_width, original_height))
-
-            # Write the compressed video to the output file with the specified bitrate
-            resized_video.write_videofile(compressed_video_path, codec="libx264", bitrate=target_bitrate)
-
-            return compressed_video_path
-        except Exception as e:
-            # Handle any errors that may occur during video compression
-            print(f"Video compression error: {str(e)}")
-            return None
+    # def compress_video(self, video_path):
+    #     try:
+    #         # Load the video using MoviePy
+    #         video = mp.VideoFileClip(video_path)
+    #
+    #         # Define the output file path for the compressed video
+    #         compressed_video_path = "compressed_video.mp4"
+    #
+    #         # Define the target resolution and bitrate (adjust as needed)
+    #         # target_resolution = (640, 360)
+    #         original_width, original_height = video.size
+    #
+    #         target_bitrate = "500k"
+    #
+    #         # Resize the video to the target resolution
+    #         resized_video = video.resize((original_width, original_height))
+    #
+    #         # Write the compressed video to the output file with the specified bitrate
+    #         resized_video.write_videofile(compressed_video_path, codec="libx264", bitrate=target_bitrate)
+    #
+    #         return compressed_video_path
+    #     except Exception as e:
+    #         # Handle any errors that may occur during video compression
+    #         print(f"Video compression error: {str(e)}")
+    #         return None
 
     def get_queryset(self):
         # Get the user ID from the URL parameter (e.g., /api/videos/?user_id=123)
@@ -595,8 +710,23 @@ class VideoDeleteView(generics.DestroyAPIView):
                 return Response({"error": "Video not found"}, status=404)
         else:
             return Response({"error": "Video ID is required as a query parameter"}, status=400)
-
+from botocore.exceptions import ClientError
+from rest_framework.response import Response
+from rest_framework import status
 class GetVideoLink(APIView):
+    # def get(self, request):
+    #     video_title = request.query_params.get('id')
+    #
+    #     if not video_title:
+    #         return Response({'error': 'Id parameter is required.'}, status=status.HTTP_400_BAD_REQUEST)
+    #
+    #     try:
+    #         video = Video.objects.get(pk=video_title)
+    #         video_link = request.build_absolute_uri(settings.MEDIA_URL + video.file.name)
+    #         return Response({'video_link': video_link}, status=status.HTTP_200_OK)
+    #     except Video.DoesNotExist:
+    #         return Response({'error': 'Video not found.'}, status=status.HTTP_404_NOT_FOUND)
+
     def get(self, request):
         video_title = request.query_params.get('id')
 
@@ -605,11 +735,28 @@ class GetVideoLink(APIView):
 
         try:
             video = Video.objects.get(pk=video_title)
-            video_link = request.build_absolute_uri(settings.MEDIA_URL + video.file.name)
-            return Response({'video_link': video_link}, status=status.HTTP_200_OK)
+
+            # Generate a pre-signed URL for the video file
+            s3_client = boto3.client(
+                's3',
+                endpoint_url='https://blr1.vultrobjects.com',  # Vultr Object Storage endpoint
+                aws_access_key_id='T5SG87Y94IKFIZBMNGOE',
+                aws_secret_access_key='2rKkzzIvLYjrS0AVltlhIdmJtJ1sskbVe6ysld38'
+            )
+            video_url = s3_client.generate_presigned_url(
+                'get_object',
+                Params={
+                    'Bucket': 'mitra-bucket',
+                    'Key': video.file.name,
+                },
+                ExpiresIn=3600  # Set the expiration time (in seconds)
+            )
+
+            return Response({'video_link': video_url}, status=status.HTTP_200_OK)
         except Video.DoesNotExist:
             return Response({'error': 'Video not found.'}, status=status.HTTP_404_NOT_FOUND)
-
+        except ClientError as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 from django.http import JsonResponse
 class GetVideoInfoView(APIView):

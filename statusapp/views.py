@@ -154,31 +154,3 @@ class StatusAPIView(APIView):
 
         except CustomUser.DoesNotExist:
             return Response({'message': 'User not found'})
-from userlist.serializers import CustomuSerializer
-
-
-class StatusAPIView(APIView):
-    def get(self, request):
-        try:
-            # Get a list of all users with status=True
-            users_with_status = CustomUser.objects.filter(statusapp__status=True)
-
-            if not users_with_status.exists():
-                return Response({'message': 'No users with status found'})
-
-            # Remove duplicates based on user ID
-            unique_users = set()
-            unique_users_list = []
-
-            for user in users_with_status:
-                if user.id not in unique_users:
-                    unique_users.add(user.id)
-                    unique_users_list.append(user)
-
-            # Serialize the user data
-            user_serializer = CustomuSerializer(unique_users_list, many=True)
-
-            return Response(user_serializer.data)
-
-        except CustomUser.DoesNotExist:
-            return Response({'message': 'User not found'})            

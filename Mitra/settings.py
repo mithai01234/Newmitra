@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 
 from pathlib import Path
 import os
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -21,7 +22,14 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'django-insecure-d428@iu6&#y1@)zrb=1r&d8kd@kq_w2=%%a(l+_o&m1rkck7as'
+
+ALLOWED_HOSTS = ['139.84.144.65']
+
+
+# Application definition
+
 INSTALLED_APPS = [
+    'jazzmin',
      'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -36,18 +44,21 @@ INSTALLED_APPS = [
     'videoupload',
     'userlist',
     'report',
-    'videolist',
+'videolist',
     'statusapp',
     'relationship',
-    'ott',
-
+    'ott'
+    # 'chatapp'
 
 ]
+
+
 
 MIDDLEWARE = [
      'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -59,6 +70,8 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
 
 ]
+
+
 ROOT_URLCONF = 'Mitra.urls'
 CORS_ORIGIN_ALLOW_ALL = True
 TEMPLATES = [
@@ -72,7 +85,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
-                
+
 
             ],
         },
@@ -82,6 +95,9 @@ STATIC_URL = 'static/'
 
 WSGI_APPLICATION = 'Mitra.wsgi.application'
 
+
+
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
@@ -89,10 +105,18 @@ DATABASES = {
     }
 }
 
+#DATABASES = {
+ #   'default': {
+       # 'ENGINE': 'django.db.backends.postgresql',
+      #  'NAME': 'defaultdb',
+     #   'USER': 'vultradmin',
+    #    'PASSWORD': 'AVNS_vnByfO1rdsrUscdj8D-',
+   #     'HOST': 'vultr-prod-bebe66a4-d17b-49d6-bb33-553c4690dd58-vultr-prod-38e2.vultrdb.com',
+  #      'PORT': '16751',
+ #   }
+#}
 AUTH_USER_MODEL = 'registration.CustomUser'
 
-# Password validation
-# https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
 
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -110,11 +134,8 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 
-# Internationalization
-# https://docs.djangoproject.com/en/4.2/topics/i18n/
 
 LANGUAGE_CODE = 'en-us'
-
 TIME_ZONE = 'UTC'
 
 USE_I18N = True
@@ -122,17 +143,21 @@ USE_I18N = True
 USE_TZ = True
 
 
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/4.2/howto/static-files/
+
 
 STATIC_URL = 'static/'
 
-# Default primary key field type
-# https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
+
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+#DEBUG = True
+#ALLOWED_HOSTS = []
 
 DEBUG = True
 
@@ -140,29 +165,19 @@ ALLOWED_HOSTS = ['*']
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 #216 219 212 database 221
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.gmail.com'  # Replace with your SMTP server hostname
-EMAIL_PORT = 587  # Port for TLS (587 for TLS, 465 for SSL)
-EMAIL_USE_TLS = True  # Use TLS encryption
-EMAIL_HOST_USER = 'srutee03@gmail.com'  # Your email address
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'srutee03@gmail.com'
 EMAIL_HOST_PASSWORD = 'yswq okhi enmt vgzo'
 
 
 
-# settings.py
 
-import boto3
+AWS_ACCESS_KEY_ID = 'T5SG87Y94IKFIZBMNGOE'
+AWS_SECRET_ACCESS_KEY = '2rKkzzIvLYjrS0AVltlhIdmJtJ1sskbVe6ysld38'
+AWS_STORAGE_BUCKET_NAME = 'mitra-bucket'
+AWS_S3_ENDPOINT_URL = 'https://blr1.vultrobjects.com'
 
-# settings.py
-
-AWS_ACCESS_KEY_ID = 'RPXXFVF2T8NYMS0HU92G'
-AWS_SECRET_ACCESS_KEY = 'nU3jO0rP7pCGKFmab3vUuSDacaaN4jvKlOlFCMHM'
-AWS_STORAGE_BUCKET_NAME = 'mitra-bucket'  # Replace with your Vultr Object Storage bucket name
-AWS_S3_ENDPOINT_URL = 'https://blr1.vultrobjects.com'  # Use your Vultr Object Storage endpoint
-
-# Use the Vultr S3Boto3Storage backend
 DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
-
-
-
-
 
