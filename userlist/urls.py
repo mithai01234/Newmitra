@@ -1,9 +1,10 @@
 from django.urls import path
 
 from . import views
-from .views import  registerlist, view_item
+from .views import  registerlist, view_item,UserDeleteView
 from .views import *
 urlpatterns = [
+    path('api/user-delete/', UserDeleteView.as_view(), name='user-delete'),
     path('get-customusers/', views.CustomUserList.as_view(), name='get-customusers'),
     path('backend/userlist/', registerlist, name="userlist"),
     path('backend/userlist/view_item/<int:myid>/', view_item, name="userlist/view_item"),
